@@ -6,6 +6,7 @@ module.exports = {
     path: path.resolve(__dirname, "dist"),
     filename: "lightning-fs.min.js",
     library: "LightningFS",
+    globalObject: 'self',
     libraryTarget: "umd",
   },
 };

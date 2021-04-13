@@ -6,7 +6,7 @@
   "version": "1.0.0",
   "description": "A lean and fast 'fs' for the browser",
   "main": "src/index.js",
-  "unpkg": "dist/lightning-fs.min.js",
+  "unpkg": "lightning-fs.min.js",
   "bin": {
     "superblocktxt": "src/superblocktxt.js"
   },
@@ -20,24 +20,9 @@
     "just-once": "1.1.1"
   },
   "devDependencies": {
-    "karma": "2.0.5",
-    "karma-browserstack-launcher": "^1.5.1",
-    "karma-chrome-launcher": "3.1.0",
-    "karma-edge-launcher": "0.4.2",
-    "karma-fail-fast-reporter": "1.0.5",
-    "karma-firefox-launcher": "1.2.0",
-    "karma-ie-launcher": "1.0.0",
-    "karma-jasmine": "2.0.1",
-    "karma-junit-reporter": "1.2.0",
-    "karma-safari-launcher": "1.0.0",
-    "karma-sauce-launcher": "1.2.0",
-    "karma-verbose-reporter": "0.0.6",
-    "karma-webpack": "4.0.2",
-    "prettier": "^1.15.3",
-    "puppeteer": "^1.10.0",
-    "semantic-release": "16.0.3",
-    "webpack": "^4.46.0",
-    "webpack-cli": "^3.3.12"
+    "prettier": "^2.2.1",
+    "webpack": "^5.32.0",
+    "webpack-cli": "^4.6.0"
   },
   "repository": {
     "type": "git",
