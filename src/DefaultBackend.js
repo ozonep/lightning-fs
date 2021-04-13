@@ -1,4 +1,3 @@
-const { encode, decode } = require("isomorphic-textencoder");
 const debounce = require("just-debounce-it");
 
 const CacheFS = require("./CacheFS.js");
@@ -129,7 +128,7 @@ module.exports = class DefaultBackend {
         this.saveSuperblock() // debounced
       }
       if (encoding === "utf8") {
-        data = decode(data);
+        data = new TextDecoder().decode(data);
       }
     }
     if (!stat) throw new ENOENT(filepath)
@@ -141,7 +140,7 @@ module.exports = class DefaultBackend {
       if (encoding !== "utf8") {
         throw new Error('Only "utf8" encoding is supported in writeFile');
       }
-      data = encode(data);
+      data = new TextEncoder().encode(data);
     }
     if (this._native) {
       await this._native.writeFile(filepath, data, { mode })
