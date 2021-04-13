@@ -1,30 +1,30 @@
-const idb = require("@isomorphic-git/idb-keyval");
+const { Store, get, set, del, clear, close} = require("./keyval.js");
 
 module.exports = class IdbBackend {
   constructor(dbname, storename) {
     this._database = dbname;
     this._storename = storename;
-    this._store = new idb.Store(this._database, this._storename);
+    this._store = new Store(this._database, this._storename);
   }
   saveSuperblock(superblock) {
-    return idb.set("!root", superblock, this._store);
+    return set("!root", superblock, this._store);
   }
   loadSuperblock() {
-    return idb.get("!root", this._store);
+    return get("!root", this._store);
   }
   readFile(inode) {
-    return idb.get(inode, this._store)
+    return get(inode, this._store)
   }
   writeFile(inode, data) {
-    return idb.set(inode, data, this._store)
+    return set(inode, data, this._store)
   }
   unlink(inode) {
-    return idb.del(inode, this._store)
+    return del(inode, this._store)
   }
   wipe() {
-    return idb.clear(this._store)
+    return clear(this._store)
   }
   close() {
-    return idb.close(this._store)
+    return close(this._store)
   }
 }

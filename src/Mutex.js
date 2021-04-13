@@ -1,4 +1,4 @@
-const idb = require("@isomorphic-git/idb-keyval");
+const { Store, update, close} = require("./keyval.js");
 
 const sleep = ms => new Promise(r => setTimeout(r, ms))
 
@@ -7,7 +7,7 @@ module.exports = class Mutex {
     this._id = Math.random()
     this._database = dbname
     this._storename = storename
-    this._store = new idb.Store(this._database, this._storename)
+    this._store = new Store(this._database, this._storename)
     this._lock = null
   }
   async has ({ margin = 2000 } = {}) {
@@ -25,7 +25,7 @@ module.exports = class Mutex {
   // Returns true if successful
   async renew ({ ttl = 5000 } = {}) {
     let success
-    await idb.update("lock", (current) => {
+    await update("lock", (current) => {
       const now = Date.now()
       const expires = now + ttl
       success = current && current.holder === this._id
@@ -39,7 +39,7 @@ module.exports = class Mutex {
     let success
     let expired
     let doubleLock
-    await idb.update("lock", (current) => {
+    await update("lock", (current) => {
       const now = Date.now()
       const expires = now + ttl
       expired = current && current.expires < now
@@ -66,14 +66,14 @@ module.exports = class Mutex {
     let success
     let doubleFree
     let someoneElseHasIt
-    await idb.update("lock", (current) => {
+    await update("lock", (current) => {
       success = force || (current && current.holder === this._id)
       doubleFree = current === void 0
       someoneElseHasIt = current && current.holder !== this._id
       this._lock = success ? void 0 : current
       return this._lock
     }, this._store)
-    await idb.close(this._store)
+    await close(this._store)
     if (!success && !force) {
       if (doubleFree) throw new Error('Mutex double-freed')
       if (someoneElseHasIt) throw new Error('Mutex lost ownership')
