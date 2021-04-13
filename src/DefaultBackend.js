@@ -4,7 +4,8 @@ const debounce = require("just-debounce-it");
 const CacheFS = require("./CacheFS.js");
 const { ENOENT, ENOTEMPTY, ETIMEDOUT } = require("./errors.js");
 const IdbBackend = require("./IdbBackend.js");
-const HttpBackend = require("./HttpBackend.js")
+const HttpBackend = require("./HttpBackend.js");
+const NativeBackend = require('./NativeBackend.js');
 const Mutex = require("./Mutex.js");
 const Mutex2 = require("./Mutex2.js");
 
@@ -24,9 +25,16 @@ module.exports = class DefaultBackend {
     fileStoreName = name + "_files",
     lockDbName = name + "_lock",
     lockStoreName = name + "_lock",
+    nativeDirectoryHandle,
   } = {}) {
     this._name = name
     this._idb = new IdbBackend(fileDbName, fileStoreName);
+    if (nativeDirectoryHandle) {
+      this._native = new NativeBackend(nativeDirectoryHandle)
+      await this._idb.writeFile("!native", nativeDirectoryHandle)
+    } else {
+      this._native = void 0
+    }
     this._mutex = navigator.locks ? new Mutex2(name) : new Mutex(lockDbName, lockStoreName);
     this._cache = new CacheFS(name);
     this._opts = { wipe, url };
@@ -98,8 +106,12 @@ module.exports = class DefaultBackend {
     if (encoding && encoding !== 'utf8') throw new Error('Only "utf8" encoding is supported in readFile');
     let data = null, stat = null
     try {
-      stat = this._cache.stat(filepath);
-      data = await this._idb.readFile(stat.ino)
+      if (this._native) {
+        data = await this._native.readFile(filepath);
+      } else {
+        stat = this._cache.stat(filepath);
+        data = await this._idb.readFile(stat.ino)
+      }
     } catch (e) {
       if (!this._urlauto) throw e
     }
@@ -131,48 +143,88 @@ module.exports = class DefaultBackend {
       }
       data = encode(data);
     }
-    const stat = await this._cache.writeStat(filepath, data.byteLength, { mode });
-    await this._idb.writeFile(stat.ino, data)
+    if (this._native) {
+      await this._native.writeFile(filepath, data, { mode })
+    } else {
+      const stat = await this._cache.writeStat(filepath, data.byteLength, { mode });
+      await this._idb.writeFile(stat.ino, data)
+    }
   }
   async unlink(filepath, opts) {
-    const stat = this._cache.lstat(filepath);
-    this._cache.unlink(filepath);
-    if (stat.type !== 'symlink') {
-      await this._idb.unlink(stat.ino)
+    if (this._native) {
+      await this._native.unlink(filepath)
+    } else {
+      const stat = this._cache.lstat(filepath);
+      this._cache.unlink(filepath);
+      if (stat.type !== 'symlink') {
+        await this._idb.unlink(stat.ino)
+      }
     }
   }
   readdir(filepath, opts) {
-    return this._cache.readdir(filepath);
+    if (this._native) {
+      return this._native.readdir(filepath);
+    } else {
+      return this._cache.readdir(filepath);
+    }
   }
   mkdir(filepath, opts) {
     const { mode = 0o777 } = opts;
-    this._cache.mkdir(filepath, { mode });
+    if (this._native) {
+      return this._native.mkdir(filepath, { mode });
+    } else {
+      return this._cache.mkdir(filepath, { mode });
+    }
   }
   rmdir(filepath, opts) {
     // Never allow deleting the root directory.
     if (filepath === "/") {
       throw new ENOTEMPTY();
     }
-    this._cache.rmdir(filepath);
+    if (this._native) {
+      return this._native.rmdir(filepath);
+    } else {
+      return this._cache.rmdir(filepath);
+    }
   }
   rename(oldFilepath, newFilepath) {
-    this._cache.rename(oldFilepath, newFilepath);
+    if (this._native) {
+      return this._native.rename(oldFilepath, newFilepath);
+    } else {
+      return this._cache.rename(oldFilepath, newFilepath);
+    }
   }
   stat(filepath, opts) {
-    return this._cache.stat(filepath);
+    if (this._native) {
+      return this._native.stat(filepath)
+    } else {
+      return this._cache.stat(filepath);
+    }
   }
   lstat(filepath, opts) {
-    return this._cache.lstat(filepath);
+    if (this._native) {
+      return this._native.lstat(filepath)
+    } else {
+      return this._cache.lstat(filepath);
+    }
   }
   readlink(filepath, opts) {
-    return this._cache.readlink(filepath);
+    if (this._native) {
+      return this._native.readlink(filepath);
+    } else {
+      return this._cache.readlink(filepath);
+    }
   }
   symlink(target, filepath) {
-    this._cache.symlink(target, filepath);
+    if (this._native) {
+      return this._native.symlink(target, filepath);
+    } else {
+      return this._cache.symlink(target, filepath);
+    }
   }
   async backFile(filepath, opts) {
     let size = await this._http.sizeFile(filepath)
-    await this._writeStat(filepath, size, opts)
+    this._writeStat(filepath, size, opts)
   }
   du(filepath) {
     return this._cache.du(filepath);
