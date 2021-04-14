@@ -8,9 +8,9 @@ function normalizePath(path) {
 }
 
 function resolvePath(...paths) {
-  let result = '';
+  let result = "";
   for (let path of paths) {
-    if (path.startsWith('/')) {
+    if (path.startsWith("/")) {
       result = path;
     } else {
       result = normalizePath(joinPath(result, path));
@@ -30,8 +30,8 @@ function splitPath(path) {
   if (path.length === 0) return [];
   if (path === "/") return ["/"];
   let parts = path.split("/");
-  if (parts[parts.length - 1] === '') {
-      parts.pop();
+  if (parts[parts.length - 1] === "") {
+    parts.pop();
   }
   if (path[0] === "/") {
     parts[0] = "/";
@@ -62,7 +62,7 @@ function reducer(ancestors, current) {
     ancestors.push(current);
     return ancestors;
   }
- 
+
   if (current === ".") return ancestors;
 
   if (current === "..") {

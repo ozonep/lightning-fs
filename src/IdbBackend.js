@@ -1,4 +1,4 @@
-const { Store, get, set, del, clear, close} = require("./keyval.js");
+const { Store, get, set, del, clear, close } = require("./keyval.js");
 
 module.exports = class IdbBackend {
   constructor(dbname, storename) {
@@ -13,18 +13,18 @@ module.exports = class IdbBackend {
     return get("!root", this._store);
   }
   readFile(inode) {
-    return get(inode, this._store)
+    return get(inode, this._store);
   }
   writeFile(inode, data) {
-    return set(inode, data, this._store)
+    return set(inode, data, this._store);
   }
   unlink(inode) {
-    return del(inode, this._store)
+    return del(inode, this._store);
   }
   wipe() {
-    return clear(this._store)
+    return clear(this._store);
   }
   close() {
-    return close(this._store)
+    return close(this._store);
   }
-}
+};

@@ -4,28 +4,27 @@ const { EEXIST, ENOENT, ENOTDIR, ENOTEMPTY } = require("./errors.js");
 const STAT = 0;
 
 module.exports = class CacheFS {
-  constructor() {
-  }
+  constructor() {}
   _makeRoot(root = new Map()) {
     root.set(STAT, { mode: 0o777, type: "dir", size: 0, ino: 0, mtimeMs: Date.now() });
-    return root
+    return root;
   }
   activate(superblock = null) {
     if (superblock === null) {
       this._root = new Map([["/", this._makeRoot()]]);
-    } else if (typeof superblock === 'string') {
+    } else if (typeof superblock === "string") {
       this._root = new Map([["/", this._makeRoot(this.parse(superblock))]]);
     } else {
-      this._root = superblock
+      this._root = superblock;
     }
   }
-  get activated () {
-    return !!this._root
+  get activated() {
+    return !!this._root;
   }
-  deactivate () {
-    this._root = void 0
+  deactivate() {
+    this._root = void 0;
   }
-  size () {
+  size() {
     return this._countInodes(this._root.get("/")) - 1;
   }
   _countInodes(map) {
@@ -36,7 +35,7 @@ module.exports = class CacheFS {
     }
     return count;
   }
-  autoinc () {
+  autoinc() {
     let val = this._maxInode(this._root.get("/")) + 1;
     return val;
   }
@@ -55,11 +54,11 @@ module.exports = class CacheFS {
         if (file === 0) continue;
         let stat = node.get(STAT);
         let mode = stat.mode.toString(8);
-        str += `${"\t".repeat(indent)}${file}\t${mode}`
+        str += `${"\t".repeat(indent)}${file}\t${mode}`;
         if (stat.type === "file") {
           str += `\t${stat.size}\t${stat.mtimeMs}\n`;
         } else {
-          str += `\n`
+          str += `\n`;
           printTree(node, indent + 1);
         }
       }
@@ -73,7 +72,7 @@ module.exports = class CacheFS {
     function mk(stat) {
       const ino = ++autoinc;
       // TODO: Use a better heuristic for determining whether file or dir
-      const type = stat.length === 1 ? "dir" : "file"
+      const type = stat.length === 1 ? "dir" : "file";
       let [mode, size, mtimeMs] = stat;
       mode = parseInt(mode, 8);
       size = size ? parseInt(size) : 0;
@@ -85,7 +84,7 @@ module.exports = class CacheFS {
     let _root = this._makeRoot();
     let stack = [
       { indent: -1, node: _root },
-      { indent: 0, node: null }
+      { indent: 0, node: null },
     ];
     for (let line of lines) {
       let prefix = line.match(/^\t*/)[0];
@@ -106,22 +105,22 @@ module.exports = class CacheFS {
   }
   _lookup(filepath, follow = true) {
     let dir = this._root;
-    let partialPath = '/'
-    let parts = path.split(filepath)
-    for (let i = 0; i < parts.length; ++ i) {
+    let partialPath = "/";
+    let parts = path.split(filepath);
+    for (let i = 0; i < parts.length; ++i) {
       let part = parts[i];
       dir = dir.get(part);
       if (!dir) throw new ENOENT(filepath);
       if (follow || i < parts.length - 1) {
-        const stat = dir.get(STAT)
-        if (stat.type === 'symlink') {
-          let target = path.resolve(partialPath, stat.target)
-          dir = this._lookup(target)
+        const stat = dir.get(STAT);
+        if (stat.type === "symlink") {
+          let target = path.resolve(partialPath, stat.target);
+          dir = this._lookup(target);
         }
         if (!partialPath) {
-          partialPath = part
+          partialPath = part;
         } else {
-          partialPath = path.join(partialPath, part)
+          partialPath = path.join(partialPath, part);
         }
       }
     }
@@ -147,7 +146,7 @@ module.exports = class CacheFS {
   }
   rmdir(filepath) {
     let dir = this._lookup(filepath);
-    if (dir.get(STAT).type !== 'dir') throw new ENOTDIR();
+    if (dir.get(STAT).type !== "dir") throw new ENOTDIR();
     if (dir.size > 1) throw new ENOTEMPTY();
     let parent = this._lookup(path.dirname(filepath));
     let basename = path.basename(filepath);
@@ -155,8 +154,8 @@ module.exports = class CacheFS {
   }
   readdir(filepath) {
     let dir = this._lookup(filepath);
-    if (dir.get(STAT).type !== 'dir') throw new ENOTDIR();
-    return [...dir.keys()].filter(key => typeof key === "string");
+    if (dir.get(STAT).type !== "dir") throw new ENOTDIR();
+    return [...dir.keys()].filter((key) => typeof key === "string");
   }
   writeStat(filepath, size, { mode }) {
     let ino;
@@ -197,7 +196,7 @@ module.exports = class CacheFS {
     let entry = this._lookup(oldFilepath);
     let destDir = this._lookup(path.dirname(newFilepath));
     destDir.set(basename, entry);
-    this.unlink(oldFilepath)
+    this.unlink(oldFilepath);
   }
   stat(filepath) {
     return this._lookup(filepath).get(STAT);
@@ -238,7 +237,7 @@ module.exports = class CacheFS {
     dir.set(basename, entry);
     return stat;
   }
-  _du (dir) {
+  _du(dir) {
     let size = 0;
     for (const [name, entry] of dir.entries()) {
       if (name === STAT) {
@@ -249,7 +248,7 @@ module.exports = class CacheFS {
     }
     return size;
   }
-  du (filepath) {
+  du(filepath) {
     let dir = this._lookup(filepath);
     return this._du(dir);
   }
