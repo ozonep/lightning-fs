@@ -26,7 +26,6 @@ module.exports = class CacheFS {
     this._root = void 0
   }
   size () {
-    // subtract 1 to ignore the root directory itself from the count.
     return this._countInodes(this._root.get("/")) - 1;
   }
   _countInodes(map) {
@@ -113,7 +112,6 @@ module.exports = class CacheFS {
       let part = parts[i];
       dir = dir.get(part);
       if (!dir) throw new ENOENT(filepath);
-      // Follow symlinks
       if (follow || i < parts.length - 1) {
         const stat = dir.get(STAT)
         if (stat.type === 'symlink') {
@@ -150,9 +148,7 @@ module.exports = class CacheFS {
   rmdir(filepath) {
     let dir = this._lookup(filepath);
     if (dir.get(STAT).type !== 'dir') throw new ENOTDIR();
-    // check it's empty (size should be 1 for just StatSym)
     if (dir.size > 1) throw new ENOTEMPTY();
-    // remove from parent
     let parent = this._lookup(path.dirname(filepath));
     let basename = path.basename(filepath);
     parent.delete(basename);
@@ -192,21 +188,15 @@ module.exports = class CacheFS {
     return stat;
   }
   unlink(filepath) {
-    // remove from parent
     let parent = this._lookup(path.dirname(filepath));
     let basename = path.basename(filepath);
     parent.delete(basename);
   }
   rename(oldFilepath, newFilepath) {
     let basename = path.basename(newFilepath);
-    // Note: do both lookups before making any changes
-    // so if lookup throws, we don't lose data (issue #23)
-    // grab references
     let entry = this._lookup(oldFilepath);
     let destDir = this._lookup(path.dirname(newFilepath));
-    // insert into new parent directory
     destDir.set(basename, entry);
-    // remove from old parent directory
     this.unlink(oldFilepath)
   }
   stat(filepath) {

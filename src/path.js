@@ -22,7 +22,6 @@ function resolvePath(...paths) {
 function joinPath(...parts) {
   if (parts.length === 0) return "";
   let path = parts.join("/");
-  // Replace consecutive '/'
   path = path.replace(/\/{2,}/g, "/");
   return path;
 }
@@ -35,7 +34,6 @@ function splitPath(path) {
       parts.pop();
   }
   if (path[0] === "/") {
-    // assert(parts[0] === '')
     parts[0] = "/";
   } else {
     if (parts[0] !== ".") {
@@ -60,30 +58,23 @@ function basename(path) {
 }
 
 function reducer(ancestors, current) {
-  // Initial condition
   if (ancestors.length === 0) {
     ancestors.push(current);
     return ancestors;
   }
-  // assert(ancestors.length > 0)
-  // assert(ancestors[0] === '.' || ancestors[0] === '/')
-
-  // Collapse '.' references
+ 
   if (current === ".") return ancestors;
 
-  // Collapse '..' references
   if (current === "..") {
     if (ancestors.length === 1) {
       if (ancestors[0] === "/") {
         throw new Error("Unable to normalize path - traverses above root directory");
       }
-      // assert(ancestors[0] === '.')
       if (ancestors[0] === ".") {
         ancestors.push(current);
         return ancestors;
       }
     }
-    // assert(ancestors.length > 1)
     if (ancestors[ancestors.length - 1] === "..") {
       ancestors.push("..");
       return ancestors;
