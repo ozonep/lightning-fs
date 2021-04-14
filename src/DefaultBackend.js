@@ -3,7 +3,6 @@ const debounce = require("just-debounce-it");
 const CacheFS = require("./CacheFS.js");
 const { ENOENT, ENOTEMPTY, ETIMEDOUT } = require("./errors.js");
 const IdbBackend = require("./IdbBackend.js");
-const HttpBackend = require("./HttpBackend.js");
 const NativeBackend = require('./NativeBackend.js');
 const Mutex = require("./Mutex.js");
 const Mutex2 = require("./Mutex2.js");
@@ -19,7 +18,6 @@ module.exports = class DefaultBackend {
   async init (name, {
     wipe,
     url,
-    urlauto,
     fileDbName = name,
     fileStoreName = name + "_files",
     lockDbName = name + "_lock",
@@ -38,10 +36,6 @@ module.exports = class DefaultBackend {
     this._cache = new CacheFS(name);
     this._opts = { wipe, url };
     this._needsWipe = !!wipe;
-    if (url) {
-      this._http = new HttpBackend(url)
-      this._urlauto = !!urlauto
-    }
   }
   async activate() {
     if (this._cache.activated) return
@@ -56,13 +50,8 @@ module.exports = class DefaultBackend {
     const root = await this._idb.loadSuperblock()
     if (root) {
       this._cache.activate(root);
-    } else if (this._http) {
-      // If that failed, attempt to load FS from HTTP backend
-      const text = await this._http.loadSuperblock()
-      this._cache.activate(text)
-      await this._saveSuperblock();
     } else {
-      // If there is no HTTP backend, start with an empty filesystem
+      // If there is no backend, start with an empty filesystem
       this._cache.activate()
     }
     if (await this._mutex.has()) {
@@ -113,14 +102,6 @@ module.exports = class DefaultBackend {
       }
     } catch (e) {
       if (!this._urlauto) throw e
-    }
-    if (!data && this._http) {
-      let lstat = this._cache.lstat(filepath)
-      while (lstat.type === 'symlink') {
-        filepath = path.resolve(path.dirname(filepath), lstat.target)
-        lstat = this._cache.lstat(filepath)
-      }
-      data = await this._http.readFile(filepath)
     }
     if (data) {
       if (!stat || stat.size != data.byteLength) {
@@ -220,10 +201,6 @@ module.exports = class DefaultBackend {
     } else {
       return this._cache.symlink(target, filepath);
     }
-  }
-  async backFile(filepath, opts) {
-    let size = await this._http.sizeFile(filepath)
-    this._writeStat(filepath, size, opts)
   }
   du(filepath) {
     return this._cache.du(filepath);

@@ -54,7 +54,6 @@ module.exports = class PromisifiedFS {
     this.lstat = this._wrap(this.lstat, cleanParamsFilepathOpts, false)
     this.readlink = this._wrap(this.readlink, cleanParamsFilepathOpts, false)
     this.symlink = this._wrap(this.symlink, cleanParamsFilepathFilepath, true)
-    this.backFile = this._wrap(this.backFile, cleanParamsFilepathOpts, true)
     this.du = this._wrap(this.du, cleanParamsFilepathOpts, false);
 
     this._deactivationPromise = null
@@ -190,10 +189,6 @@ module.exports = class PromisifiedFS {
   async symlink(target, filepath) {
     await this._backend.symlink(target, filepath);
     return null;
-  }
-  async backFile(filepath, opts) {
-    await this._backend.backFile(filepath, opts);
-    return null
   }
   async du(filepath) {
     return this._backend.du(filepath);
