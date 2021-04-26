@@ -3,13 +3,10 @@
     "access": "public"
   },
   "name": "lightning-fs-native",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "A lean and fast 'fs' for the browser",
   "main": "src/index.js",
-  "unpkg": "lightning-fs.min.js",
-  "bin": {
-    "superblocktxt": "src/superblocktxt.js"
-  },
+  "browser": "src/index.js",
   "scripts": {
     "test": "karma start --single-run",
     "build": "webpack",
@@ -24,7 +21,7 @@
   "devDependencies": {
     "prettier": "^2.2.1",
     "standard": "^16.0.3",
-    "webpack": "^5.35.0",
+    "webpack": "^5.35.1",
     "webpack-cli": "^4.6.0"
   },
   "repository": {
@@ -32,9 +29,7 @@
     "url": "git+https://github.com/isomorphic-git/lightning-fs.git"
   },
   "files": [
-    "**/*.js",
-    "!__tests__",
-    "!coverage"
+    "**/*.js"
   ],
   "keywords": [
     "browser",
