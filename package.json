@@ -7,16 +7,13 @@
   "description": "A lean and fast 'fs' for the browser",
   "main": "src/index.js",
   "browser": "src/index.js",
+  "typings": "index.d.ts",
   "scripts": {
     "test": "karma start --single-run",
     "build": "webpack",
     "prettify": "prettier --write ./src",
     "standartify": "standard --fix",
     "semantic-release": "semantic-release"
-  },
-  "dependencies": {
-    "just-debounce-it": "1.4.0",
-    "just-once": "1.1.1"
   },
   "devDependencies": {
     "prettier": "^2.2.1",

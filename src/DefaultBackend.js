@@ -1,4 +1,4 @@
-const debounce = require('just-debounce-it')
+const {debounce} = require('./utils');
 
 const CacheFS = require('./CacheFS.js')
 const { ENOENT, ENOTEMPTY, ETIMEDOUT } = require('./errors.js')
