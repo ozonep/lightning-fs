@@ -3,7 +3,7 @@
     "access": "public"
   },
   "name": "lightning-fs-native",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "A lean and fast 'fs' for the browser",
   "main": "src/index.js",
   "browser": "src/index.js",
